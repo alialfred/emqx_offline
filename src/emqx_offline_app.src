@@ -1,0 +1,8 @@
+{application,emqx_offline,
+             [{description,"EMQ X Offline"},
+              {vsn,"git"},
+              {modules,[]},
+              {registered,[emqx_offline_sup]},
+              {applications,[kernel,stdlib]},
+              {mod,{emqx_offline_app,[]}}]}.
+              
