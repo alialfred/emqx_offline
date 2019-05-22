@@ -10,7 +10,7 @@
 
 init(Opts) -> {ok, Opts}.
 
-check(#mqtt_client{client_id = ClientId, username = Username}, Password, _Opts) ->
+check(#emqx_client{client_id = ClientId, username = Username}, Password, _Opts) ->
     io:format("Auth Demo: clientId=~p, username=~p, password=~p Opts=~p~n",
               [ClientId, Username, Password, _Opts]),
     ok.
