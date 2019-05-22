@@ -56,7 +56,7 @@ on_message_publish(Message, _Env) ->
     end),
     {ok, Message}.
 
-on_client_disconnected(#mqtt_client{client_id = ClientId, username = Username}, ReasonCode, _Env) ->
+on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
     lager:info("@@@client ~s disconnected, reason: ~w~n", [ClientId, ReasonCode]),
     case emqx_sm:lookup_session(ClientId) of
         undefined ->
