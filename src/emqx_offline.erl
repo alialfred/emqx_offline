@@ -58,7 +58,7 @@ on_message_publish(Message, _Env) ->
     {ok, Message}.
 
 on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
-    case emqx_session:info(ClientId) of
+    case emqx_sm:lookup_session_pids(ClientId) of
         % undefined ->;
             % lager:error("[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
         Session ->
