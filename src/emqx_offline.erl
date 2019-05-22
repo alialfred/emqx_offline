@@ -17,6 +17,7 @@
 -module(emqx_offline).
 
 -include_lib("emqx/include/emqx.hrl").
+-include_lib("emqx/include/logger.hrl").
 
 -export([load/1, unload/0]).
 
@@ -38,18 +39,18 @@ load(Env) ->
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
     {ok, Message};
 on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
-    lager:info("Skip own message ~s~n", [Message]),
+    ?LOG(info, "[Offline] Skip own message ~s~n", [Message]),
     {ok, Message};
 on_message_publish(Message, _Env) ->
-    lager:info("Processing message ~p", [Message]),
+    ?LOG(info, "[Offline] Processing message ~p~n", [Message]),
     spawn(fun() ->
       #message{topic = Topic, payload = Payload} = Message,
       case mnesia:dirty_read(emqx_topic, Topic) of
         [] ->
-          lager:info("~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
+          ?LOG(info, "[Offline] ~p: Looks like the topic '~s' isn't accessible~n", [?MODULE, Topic]),
           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
           Res = emqx:publish(Message1),
-          lager:info("~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
+          ?LOG(info, "[Offline] ~p: Redirecting the message to the topic '~s': ~p~n", [?MODULE,  ?PUSH_NOTIFICATION_TOPIC, Res]),
         [#{}] ->
           ok
       end
@@ -57,10 +58,10 @@ on_message_publish(Message, _Env) ->
     {ok, Message}.
 
 on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
-    lager:info("@@@client ~s disconnected, reason: ~w~n", [ClientId, ReasonCode]),
+    ?LOG(info, "[Offline] @@@client ~s disconnected, reason: ~w~n", [ClientId, ReasonCode]),
     case emqx_sm:lookup_session(ClientId) of
         undefined ->
-            lager:error("@@@Client(~s/~s) session is undefined", [ClientId, Username]);
+            ?LOG(info, "[Offline] @@@Client(~s/~s) session is undefined~n", [ClientId, Username]),
         Session ->
             State = emqx_session:state(Session#session.pid),
             InFlight = proplists:get_value(inflight, State),
@@ -76,9 +77,9 @@ unload() ->
 send_not_delivered([])->
     ok;
 send_not_delivered([{_,  #message{payload = Payload} = Msg, _} | InFlight]) ->
-    lager:info("InFlightMsg ~p~n", [Msg]),
+    ?LOG(info, "[Offline] InFlightMsg ~p~n", [Msg]),
     Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
     Res = emqx:publish(Message1),
-    lager:info("~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]),
+    ?LOG(info, "[Offline] ~p: Redirecting the message to the topic '~s': ~p~n", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]),
     send_not_delivered(InFlight).
 
