@@ -16,8 +16,6 @@
 
 -module(emqx_offline).
 
--behaviour(gen_server).
-
 -include_lib("emqx/include/emqx.hrl").
 
 -export([load/1, unload/0]).
