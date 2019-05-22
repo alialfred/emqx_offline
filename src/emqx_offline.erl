@@ -24,8 +24,8 @@
 %% Hooks functions
 
 -export([
-    on_message_publish/2,
-    on_client_disconnected/3
+    on_message_publish/2
+    % ,on_client_disconnected/3
 ]).
 
 -define(PUSH_NOTIFICATION_TOPIC, <<"pushnotification">>).
@@ -57,22 +57,22 @@ on_message_publish(Message, _Env) ->
     end),
     {ok, Message}.
 
-on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
-%%    lager:info("[Offline] @@@client ~s disconnected, reason: ~w~n", [ClientId, ReasonCode]),
-    case emqx_sm:lookup_session(ClientId) of
-        % undefined ->
-            % lager:error("[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
-        Session ->
-            State = emqx_session:state(Session#session.pid),
-            InFlight = proplists:get_value(inflight, State),
-            InFlightMsgs = emqx_inflight:values(InFlight),
-            ok = send_not_delivered(InFlightMsgs)
-    end.
+% on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
+% %%    lager:info("[Offline] @@@client ~s disconnected, reason: ~w~n", [ClientId, ReasonCode]),
+%     case emqx_sm:lookup_session(ClientId) of
+%         % undefined ->
+%             % lager:error("[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
+%         Session ->
+%             State = emqx_session:state(Session#session.pid),
+%             InFlight = proplists:get_value(inflight, State),
+%             InFlightMsgs = emqx_inflight:values(InFlight),
+%             ok = send_not_delivered(InFlightMsgs)
+%     end.
 
 %% Called when the plugin application stop
 unload() ->
-    emqx:unhook('message.publish', fun ?MODULE:on_message_publish/2),
-    emqx:unhook('client.disconnected', fun ?MODULE:on_client_disconnected/3).
+    emqx:unhook('message.publish', fun ?MODULE:on_message_publish/2).
+    % emqx:unhook('client.disconnected', fun ?MODULE:on_client_disconnected/3).
 
 send_not_delivered([])->
     ok;
