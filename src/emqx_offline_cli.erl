@@ -2,6 +2,7 @@
 -module(emqx_offline_cli).
 
 -include_lib("emqx/include/emqx_client.hrl").
+-include_lib("emqx/include/emqx_cli.hrl").
 -include_lib("emqx/include/logger.hrl").
 
 -export([cmd/1]).
