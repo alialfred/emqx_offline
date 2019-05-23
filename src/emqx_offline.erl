@@ -43,11 +43,13 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
     {ok, Message};
 on_message_publish(Message, _Env) ->
       #message{topic = Topic, payload = Payload} = Message,
+      io:format("[Offline] ~p: topic(~p) exists ~n", [?MODULE, mnesia:dirty_read(emqx_trie_node, Topic)]);
+
       case emqx_router:has_routes(Topic) of
         false ->
           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
           Res = emqx_broker:publish(Message1),
-          io:format("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
+          io:format("[Offline] ~p: Redirecting the message to the topic '~s': ~p~n", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
         true ->
           io:format("[Offline] ~p: topic(~s) exists ~n", [?MODULE, Topic]),
           ok
