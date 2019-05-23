@@ -44,29 +44,27 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
       #message{topic = Topic, payload = Payload} = Message,
-        Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
-        Res = emqx_broker:publish(Message1),
-%       case mnesia:dirty_read(emqx_topic, Topic) of
-%         [] ->
-% %%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
-%           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
-%           Res = emqx_broker:publish(Message1);
-% %%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
-%         [#{}] ->
-%           ok
-%       end
+      case mnesia:dirty_read(emqx_topic, Topic) of
+        [] ->
+%%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
+          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
+          Res = emqx_broker:publish(Message1);
+%%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
+        [#topic{}] ->
+          ok
+      end
     {ok, Message}.
 
 on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
     case emqx_sm:lookup_session_pids(ClientId) of
-        undefined ->
-            ?LOG(error, "[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
+        % undefined ->
+        %     ?LOG(error, "[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
             % lager:error("[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
-        Session ->
-            State = emqx_session:state(Session#session.pid),
-            InFlight = proplists:get_value(inflight, State),
-            InFlightMsgs = emqx_inflight:values(InFlight),
-            ok = send_not_delivered(InFlightMsgs)
+        % Session ->
+        %     State = emqx_session:state(Session#session.pid),
+        %     InFlight = proplists:get_value(inflight, State),
+        %     InFlightMsgs = emqx_inflight:values(InFlight),
+        %     ok = send_not_delivered(InFlightMsgs)
     end.
 
 %% Called when the plugin application stop
