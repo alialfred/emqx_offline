@@ -43,7 +43,7 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
     {ok, Message};
 on_message_publish(Message, _Env) ->
       #message{topic = Topic, payload = Payload} = Message,
-      io:format("[Offline] ~p: dirty_read(~p) ~n", [?MODULE, mnesia:dirty_read(emqx_trie, Topic)]),
+      io:format("[Offline] ~p: dirty_read(~p) ~n", [?MODULE, mnesia:dirty_read(emqx_route, Topic)]),
 
       case emqx_router:has_routes(Topic) of
         false ->
