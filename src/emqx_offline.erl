@@ -49,6 +49,7 @@ on_message_publish(Message, _Env) ->
           Res = emqx_broker:publish(Message1),
           io:format("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
         true ->
+          io:format("[Offline] ~p: topic(~s) exists ~n", [?MODULE, Topoic]),
           ok
       end,
     {ok, Message}.
