@@ -43,24 +43,24 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
     {ok, Message};
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
-    ok = send_not_delivered(#message{payload = Payload})
-    spawn(fun() ->
       #message{topic = Topic, payload = Payload} = Message,
-      case mnesia:dirty_read(emqx_topic, Topic) of
-        [] ->
-%%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
-          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
-          Res = emqx_broker:publish(Message1);
-%%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
-        [#{}] ->
-          ok
-      end
-    end),
+        Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
+        Res = emqx_broker:publish(Message1),
+%       case mnesia:dirty_read(emqx_topic, Topic) of
+%         [] ->
+% %%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
+%           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
+%           Res = emqx_broker:publish(Message1);
+% %%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
+%         [#{}] ->
+%           ok
+%       end
     {ok, Message}.
 
 on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
     case emqx_sm:lookup_session_pids(ClientId) of
-        % undefined ->;
+        undefined ->
+            ?LOG(error, "[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
             % lager:error("[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
         Session ->
             State = emqx_session:state(Session#session.pid),
