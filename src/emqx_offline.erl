@@ -44,16 +44,19 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
     {ok, Message};
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
-      #message{topic = Topic, payload = Payload} = Message,
-      case mnesia:dirty_read(mqtt_topic, Topic) of
-        [] ->
-%%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
-          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
-          Res = emqx_broker:publish(Message1);
-%%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
-        [#{}] ->
-          ok
-      end,
+          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, mnesia:info()),
+          Res = emqx_broker:publish(Message1),
+
+%       #message{topic = Topic, payload = Payload} = Message,
+%       case mnesia:dirty_read(mqtt_topic, Topic) of
+%         [] ->
+% %%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
+%           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
+%           Res = emqx_broker:publish(Message1);
+% %%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
+%         [#{}] ->
+%           ok
+%       end,
     {ok, Message}.
 
 on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
