@@ -45,13 +45,13 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
       #message{topic = Topic, payload = Payload} = Message,
-      case mnesia:dirty_read(emqx_trie_node, Topic) of
+      case mnesia:dirty_read(mqtt_topic, Topic) of
         [] ->
 %%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
           Res = emqx_broker:publish(Message1);
 %%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
-        [#trie_node{topic = Topic}] ->
+        [#mqtt_topic{}] ->
           ok
       end,
     {ok, Message}.
