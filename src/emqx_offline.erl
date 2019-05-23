@@ -44,10 +44,10 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
     {ok, Message};
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
-          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, mnesia:dirty_read(emqx_trie_node, Topic)),
+      #message{topic = Topic, payload = Payload} = Message,
+          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, emqx_router:has_routes(Topic)),
           Res = emqx_broker:publish(Message1),
 
-%       #message{topic = Topic, payload = Payload} = Message,
 %       case mnesia:dirty_read(mqtt_topic, Topic) of
 %         [] ->
 % %%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
