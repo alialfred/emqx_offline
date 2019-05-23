@@ -56,8 +56,9 @@ on_message_publish(Message, _Env) ->
     {ok, Message}.
 
 on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCode, _Env) ->
-    case emqx_sm:lookup_session_pids(ClientId) of
-        undefined -> ok
+    io:format("Client(~s) disconnected, reason_code: ~w~n", [ClientId, ReasonCode]).
+    % case emqx_sm:lookup_session_pids(ClientId) of
+    %     undefined -> ok
         %     ?LOG(error, "[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
             % lager:error("[Offline] @@@Client(~s/~s) session is undefined", [ClientId, Username]);
         % Session ->
@@ -65,7 +66,7 @@ on_client_disconnected(#{client_id := ClientId, username := Username}, ReasonCod
         %     InFlight = proplists:get_value(inflight, State),
         %     InFlightMsgs = emqx_inflight:values(InFlight),
         %     ok = send_not_delivered(InFlightMsgs)
-    end.
+    % end.
 
 %% Called when the plugin application stop
 unload() ->
