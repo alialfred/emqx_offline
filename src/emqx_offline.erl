@@ -28,6 +28,7 @@
     on_client_disconnected/3
 ]).
 
+% -define(TRIE_NODE, emqx_trie_node).
 -define(PUSH_NOTIFICATION_TOPIC, <<"pushnotification">>).
 
 %% Called when the plugin application start
@@ -44,7 +45,7 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
       #message{topic = Topic, payload = Payload} = Message,
-      case mnesia:read(?TRIE_NODE, Topic) of
+      case mnesia:read(emqx_trie_node, Topic) of
         [] ->
 %%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
