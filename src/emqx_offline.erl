@@ -43,13 +43,14 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
     {ok, Message};
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
+    ok = send_not_delivered(#message{payload = Payload})
     spawn(fun() ->
       #message{topic = Topic, payload = Payload} = Message,
       case mnesia:dirty_read(emqx_topic, Topic) of
         [] ->
 %%          lager:info("[Offline] ~p: Looks like the topic '~s' isn't accessible", [?MODULE, Topic]),
           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
-          Res = emqx:publish(Message1);
+          Res = emqx_broker:publish(Message1);
 %%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
         [#{}] ->
           ok
@@ -78,7 +79,7 @@ send_not_delivered([])->
 send_not_delivered([{_,  #message{payload = Payload} = Msg, _} | InFlight]) ->
     % lager:info("[Offline] InFlightMsg ~p~n", [Msg]),
     Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
-    Res = emqx:publish(Message1),
+    Res = emqx_broker:publish(Message1),
     % lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]),
     send_not_delivered(InFlight).
 
