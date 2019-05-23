@@ -44,7 +44,7 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
     {ok, Message};
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
-          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, mnesia:info()),
+          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, mnesia:dirty_read(emqx_trie_node, Topic) = Payload),
           Res = emqx_broker:publish(Message1),
 
 %       #message{topic = Topic, payload = Payload} = Message,
