@@ -51,7 +51,7 @@ on_message_publish(Message, _Env) ->
           Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, Payload),
           Res = emqx_broker:publish(Message1);
 %%          lager:info("[Offline] ~p: Redirecting the message to the topic '~s': ~p", [?MODULE, ?PUSH_NOTIFICATION_TOPIC, Res]);
-        [#trie_node{topic = Topic} ->
+        [#trie_node{topic = Topic}] ->
           ok
       end,
     {ok, Message}.
