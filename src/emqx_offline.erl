@@ -45,8 +45,10 @@ on_message_publish(Message=#message{from = ?MODULE}, _Env) ->
 on_message_publish(Message, _Env) ->
 %%    lager:info("[Offline] Processing message ~p", [Message]),
       #message{topic = Topic, payload = Payload} = Message,
-          Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, emqx_router:has_routes(Topic)),
-          Res = emqx_broker:publish(Message1),
+      io:format("[Offline ] Has Route ~s~n", [emqx_router:has_routes(Topic)]),
+
+        %   Message1 = emqx_message:make(?MODULE, ?PUSH_NOTIFICATION_TOPIC, emqx_router:has_routes(Topic)),
+        %   Res = emqx_broker:publish(Message1),
 
 %       case mnesia:dirty_read(mqtt_topic, Topic) of
 %         [] ->
